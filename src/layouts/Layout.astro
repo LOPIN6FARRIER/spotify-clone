@@ -1,0 +1,60 @@
+---
+interface Props {
+	title: string;
+}
+
+import { Player } from '@/components/Player';
+import AsideMenu from '../components/AsideMenu.astro';
+import { ViewTransitions } from 'astro:transitions';
+
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<ViewTransitions fallback='none'></ViewTransitions>
+	</head>
+	<body>
+		<div id="app" class="relative h-screen p-2 gap-2">
+			<aside class="[grid-area:aside] flex-col flex overflow-y-auto">
+				<AsideMenu></AsideMenu>
+			</aside>
+				<main class="[grid-area:main] rounded-lg bg-zinc-900 overflow-y-auto">
+					<slot />
+				</main>
+			<footer class="[grid-area:player] h-[80px] "> <Player transition:name='media-player' transition:persist client:load/> </footer>
+		</div>
+<style>
+	#app{
+		display: grid;
+		grid-template-areas:
+			"aside main main"
+			"player player player";
+			grid-template-columns: 350px 1fr;
+			grid-template-rows: 1fr auto;
+		}
+</style>
+<style is:global>
+	@font-face {
+		font-family: 'CircularStd';
+		src: url("/fonts/CircularStd-Bold.woff2") format("woff2");
+		font-weight: 700;
+		font-style: normal;
+		font-display: swap;
+	}
+	@font-face {
+		font-family: 'CircularStd';
+		src: url("/fonts/CircularStd-Black.woff2") format("woff2");
+		font-weight: 700;
+		font-style: normal;
+		font-display: swap;
+	}
+	html {
+		font-family: "CircularStd", sistem-ui, sans-serif;
+		background: #010101;
+		color: white;
+	}
+	
+</style>
+</body>
+</html>
