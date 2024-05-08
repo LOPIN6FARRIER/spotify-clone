@@ -2,7 +2,7 @@
 import { c as createComponent, r as renderTemplate, m as maybeRenderHead, e as addAttribute, d as renderComponent, i as renderTransition, f as createAstro } from '../astro_9O-FhdGz.mjs';
 import 'kleur/colors';
 import 'html-escaper';
-import { C as CardPlayButton, p as playlists, $ as $$Layout } from './_id__CqMIZNUY.mjs';
+import { C as CardPlayButton, p as playlists, $ as $$Layout } from './_id__DvWUJEjl.mjs';
 
 /** @returns {void} */
 
