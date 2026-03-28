@@ -426,9 +426,9 @@ export function PlaylistEditor({
       console.log("📋 PlaylistId:", playlistId);
       console.log("🎵 Song URI:", song.uri);
       console.log("🔑 Access Token:", accessToken ? "Present" : "Missing");
-      
+
       await removeSongFromPlaylist(playlistId, song.uri, accessToken);
-      
+
       console.log("✅ Canción eliminada exitosamente");
       setSongs(songs.filter((s) => s.id !== songId));
       onUpdate?.();

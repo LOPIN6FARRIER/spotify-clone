@@ -85,32 +85,48 @@ if (!playlist) {
       client:load
     />
   </div>
-  
+
   <script is:inline>
     // Prevenir zoom al hacer clic en checkboxes y otros elementos
-    (function() {
+    (function () {
       // Prevenir doble tap zoom
       let lastTouchEnd = 0;
-      document.addEventListener('touchend', function(event) {
-        const now = Date.now();
-        if (now - lastTouchEnd <= 300) {
-          event.preventDefault();
-        }
-        lastTouchEnd = now;
-      }, { passive: false });
-      
+      document.addEventListener(
+        "touchend",
+        function (event) {
+          const now = Date.now();
+          if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+          }
+          lastTouchEnd = now;
+        },
+        { passive: false },
+      );
+
       // Prevenir zoom con pinch gesture
-      document.addEventListener('gesturestart', function(e) {
-        e.preventDefault();
-      }, { passive: false });
-      
-      document.addEventListener('gesturechange', function(e) {
-        e.preventDefault();
-      }, { passive: false });
-      
-      document.addEventListener('gestureend', function(e) {
-        e.preventDefault();
-      }, { passive: false });
+      document.addEventListener(
+        "gesturestart",
+        function (e) {
+          e.preventDefault();
+        },
+        { passive: false },
+      );
+
+      document.addEventListener(
+        "gesturechange",
+        function (e) {
+          e.preventDefault();
+        },
+        { passive: false },
+      );
+
+      document.addEventListener(
+        "gestureend",
+        function (e) {
+          e.preventDefault();
+        },
+        { passive: false },
+      );
     })();
   </script>
 </Layout>

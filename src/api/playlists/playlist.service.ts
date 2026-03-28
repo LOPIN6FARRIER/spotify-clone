@@ -116,10 +116,16 @@ export async function removeSongFromPlaylist(
   songUri: string,
   accessToken: string,
 ): Promise<void> {
-  console.log("📡 [removeSongFromPlaylist] Endpoint:", `${API_BASE}/spotify/playlists/${playlistId}/tracks`);
+  console.log(
+    "📡 [removeSongFromPlaylist] Endpoint:",
+    `${API_BASE}/spotify/playlists/${playlistId}/tracks`,
+  );
   console.log("📦 [removeSongFromPlaylist] Body:", { uris: [songUri] });
-  console.log("🔑 [removeSongFromPlaylist] Token:", accessToken ? `${accessToken.substring(0, 20)}...` : "Missing");
-  
+  console.log(
+    "🔑 [removeSongFromPlaylist] Token:",
+    accessToken ? `${accessToken.substring(0, 20)}...` : "Missing",
+  );
+
   const res = await fetch(
     `${API_BASE}/spotify/playlists/${playlistId}/tracks`,
     {
@@ -133,14 +139,20 @@ export async function removeSongFromPlaylist(
     },
   );
 
-  console.log("📥 [removeSongFromPlaylist] Response status:", res.status, res.statusText);
+  console.log(
+    "📥 [removeSongFromPlaylist] Response status:",
+    res.status,
+    res.statusText,
+  );
 
   if (!res.ok) {
     const error = await res.json().catch(() => null);
     console.error("❌ [removeSongFromPlaylist] Error response:", error);
-    throw new Error(error?.message || error?.error || `Failed to remove song: ${res.status}`);
+    throw new Error(
+      error?.message || error?.error || `Failed to remove song: ${res.status}`,
+    );
   }
-  
+
   console.log("✅ [removeSongFromPlaylist] Success!");
 }
 

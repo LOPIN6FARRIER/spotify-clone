@@ -13,7 +13,10 @@ import { playlists, songs } from "@/lib/data";
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>{Astro.props.title}</title>
   </head>
   <body>
@@ -107,7 +110,7 @@ import { playlists, songs } from "@/lib/data";
         background: #010101;
         color: white;
       }
-      
+
       /* Prevenir zoom automático en inputs y checkboxes */
       input,
       textarea,
@@ -116,7 +119,7 @@ import { playlists, songs } from "@/lib/data";
         font-size: 16px !important;
         touch-action: manipulation;
       }
-      
+
       input[type="checkbox"] {
         touch-action: manipulation;
         transform: scale(1);
@@ -124,7 +127,7 @@ import { playlists, songs } from "@/lib/data";
         -moz-appearance: none;
         appearance: none;
       }
-      
+
       /* Prevenir comportamiento de auto-scroll al hacer focus */
       input:focus,
       textarea:focus,
