@@ -1,0 +1,174 @@
+---
+const user = Astro.locals.user;
+---
+
+{
+  user ? (
+    <div class="user-profile">
+      <a href="/profile" class="user-info">
+        <div class="user-avatar">{user.email.charAt(0).toUpperCase()}</div>
+        <div class="user-details">
+          <p class="user-email">{user.email}</p>
+          <p class="user-role">{user.role}</p>
+        </div>
+      </a>
+      <button id="logoutBtn" class="logout-btn" title="Cerrar sesión">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+        </svg>
+      </button>
+    </div>
+  ) : (
+    <div class="auth-buttons">
+      <a href="/login" class="btn-login">
+        Iniciar Sesión
+      </a>
+      <a href="/register" class="btn-register">
+        Registrarse
+      </a>
+    </div>
+  )
+}
+
+<style>
+  .user-profile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #282828;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .user-info:hover {
+    opacity: 0.8;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1db954, #1ed760);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.125rem;
+    flex-shrink: 0;
+  }
+
+  .user-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-email {
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .user-role {
+    color: #b3b3b3;
+    font-size: 0.75rem;
+    margin: 2px 0 0;
+    text-transform: capitalize;
+  }
+
+  .logout-btn {
+    background: transparent;
+    border: none;
+    color: #b3b3b3;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logout-btn:hover {
+    color: #fff;
+    background: #3e3e3e;
+  }
+
+  .auth-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .btn-login,
+  .btn-register {
+    padding: 10px 16px;
+    border-radius: 20px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+  }
+
+  .btn-login {
+    background: transparent;
+    border: 1px solid #fff;
+    color: #fff;
+  }
+
+  .btn-login:hover {
+    transform: scale(1.02);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .btn-register {
+    background: #1db954;
+    color: #fff;
+    border: 1px solid #1db954;
+  }
+
+  .btn-register:hover {
+    background: #1ed760;
+    transform: scale(1.02);
+  }
+</style>
+
+<script>
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        const response = await fetch("/api/auth/logout", {
+          method: "POST",
+        });
+
+        if (response.ok) {
+          window.location.href = "/login";
+        }
+      } catch (error) {
+        console.error("Error during logout:", error);
+        // Redirigir de todos modos
+        window.location.href = "/login";
+      }
+    });
+  }
+</script>

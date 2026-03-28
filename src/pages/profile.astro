@@ -1,0 +1,203 @@
+---
+/**
+ * Ejemplo de página protegida
+ * Solo usuarios autenticados pueden acceder
+ */
+import Layout from "../layouts/Layout.astro";
+
+const user = Astro.locals.user;
+
+// Redirigir a login si no está autenticado
+if (!user) {
+  return Astro.redirect("/login");
+}
+---
+
+<Layout title="Mi Perfil - Spotify Clone">
+  <div class="profile-page">
+    <div class="profile-header">
+      <div class="profile-avatar">
+        {user.email.charAt(0).toUpperCase()}
+      </div>
+      <div class="profile-info">
+        <p class="profile-label">Perfil</p>
+        <h1 class="profile-email">{user.email}</h1>
+        <p class="profile-meta">
+          <span class="profile-role">{user.role}</span>
+          <span class="separator">•</span>
+          <span class="profile-id">ID: {user.userId}</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="profile-content">
+      <section class="profile-section">
+        <h2>Información de la cuenta</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Email</span>
+            <span class="info-value">{user.email}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Rol</span>
+            <span class="info-value">{user.role}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">ID de usuario</span>
+            <span class="info-value">{user.userId}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="profile-section">
+        <h2>Estado de sesión</h2>
+        <div class="session-status">
+          <div class="status-indicator"></div>
+          <span>Sesión activa</span>
+        </div>
+      </section>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .profile-page {
+    padding: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #3e3e3e;
+  }
+
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1db954, #1ed760);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 3rem;
+    box-shadow: 0 8px 24px rgba(29, 185, 84, 0.4);
+  }
+
+  .profile-info {
+    flex: 1;
+  }
+
+  .profile-label {
+    color: #b3b3b3;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin: 0 0 8px;
+  }
+
+  .profile-email {
+    color: #fff;
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0 0 12px;
+    line-height: 1;
+  }
+
+  .profile-meta {
+    color: #b3b3b3;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .profile-role {
+    background: #1db954;
+    color: #000;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .separator {
+    color: #535353;
+  }
+
+  .profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .profile-section {
+    background: #181818;
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .profile-section h2 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin: 0 0 20px;
+    font-weight: 600;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .info-label {
+    color: #b3b3b3;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .info-value {
+    color: #fff;
+    font-size: 1rem;
+  }
+
+  .session-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #282828;
+    border-radius: 8px;
+  }
+
+  .status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #1db954;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+</style>

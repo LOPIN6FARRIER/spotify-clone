@@ -13,6 +13,9 @@
       ],
       "@/lib": [
         "src/lib/*"
+      ],
+      "@/api": [
+        "src/api/*"
       ]
     },
     "jsx": "react-jsx",

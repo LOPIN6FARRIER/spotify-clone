@@ -1,13 +1,43 @@
 ---
-import MusicsTable from "@/components/MusicsTable.astro"
-import Layout from "../../layouts/Layout.astro"
-import { CardPlayButton } from "@/components/CardPlayButton"
-import { allPlaylists, songs } from "@/lib/data"
+import MusicsTable from "@/components/MusicsTable.astro";
+import Layout from "../../layouts/Layout.astro";
+import { CardPlayButton } from "@/components/CardPlayButton";
+import { playlists, songs } from "@/lib/data";
+import {
+  getPlaylistDetails,
+  getUserPlaylists,
+} from "@/api/spotify/playlist.ts";
 
-const { id } = Astro.params
+const { id } = Astro.params;
+const user = Astro.locals.user;
+const isAdmin = user?.role === "admin";
 
-const playlist = allPlaylists.find((playlist) => playlist.id === id)
-const playListSongs = songs.filter((song) => song.albumId === playlist?.albumId)
+console.log("===== DEBUG PLAYLIST =====");
+console.log("User:", user);
+console.log("User role:", user?.role);
+console.log("Is Admin:", isAdmin);
+console.log("========================");
+
+// Obtener playlists de Spotify
+const spotifyResult = await getUserPlaylists();
+const spotifyPlaylists =
+  spotifyResult.success && spotifyResult.data ? spotifyResult.data : [];
+
+// Combinar todas las playlists (locales + Spotify)
+const allPlaylists = [...playlists, ...spotifyPlaylists];
+
+// Buscar en todas las playlists
+let playlist = allPlaylists.find((p) => p.id === id);
+
+// Determinar si es playlist local o de Spotify
+const isLocalPlaylist = playlist?.local === true;
+
+const playListSongs = isLocalPlaylist
+  ? songs.filter((song) => song.albumId === playlist?.albumId)
+  : await getPlaylistDetails(id).then((data: { playlist: any; songs: any }) => {
+      playlist = data.playlist;
+      return data.songs;
+    });
 ---
 
 <Layout title="Spotify Clone">
@@ -29,7 +59,28 @@ const playListSongs = songs.filter((song) => song.albumId === playlist?.albumId)
       </picture>
 
       <div class="flex flex-col justify-between">
-        <h2 class="flex flex-1 items-end">Playlist</h2>
+        <div class="flex items-center justify-between">
+          <h2 class="flex flex-1 items-end">Playlist</h2>
+          {
+            isAdmin && !playlist?.local && (
+              <a
+                href={`/playlist/${id}/edit`}
+                class="edit-button"
+                title="Editar playlist"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                >
+                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                </svg>
+                Editar
+              </a>
+            )
+          }
+        </div>
         <div>
           <h1 class="text-5xl font-bold block text-white">
             {playlist?.title}
@@ -52,7 +103,7 @@ const playListSongs = songs.filter((song) => song.albumId === playlist?.albumId)
     </header>
 
     <div class="pl-6 pt-6">
-      <CardPlayButton client:load id={id} size="large" />
+      {playlist?.local && <CardPlayButton client:load id={id} size="large" />}
     </div>
 
     <div class="relative z-10 px-6 pt-10"></div>
@@ -68,3 +119,27 @@ const playListSongs = songs.filter((song) => song.albumId === playlist?.albumId)
   </div>
 </Layout>
 
+<style>
+  .edit-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #1db954;
+    color: #000;
+    border-radius: 24px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+  }
+
+  .edit-button:hover {
+    background: #1ed760;
+    transform: scale(1.05);
+  }
+
+  .edit-button svg {
+    flex-shrink: 0;
+  }
+</style>

@@ -1,24 +1,49 @@
 ---
-import Greeting from '@/components/Greeting.svelte';
-import Layout from '../layouts/Layout.astro';
-import PlaylistsItemCard from '@/components/PlaylistsItemCard.astro';
-import { playlists } from '@/lib/data';
+import Greeting from "@/components/Greeting.svelte";
+import Layout from "../layouts/Layout.astro";
+import PlaylistsItemCard from "@/components/PlaylistsItemCard.astro";
+import { playlists, type Playlist } from "@/lib/data";
+import { getUserPlaylists } from "@/api/spotify/playlist";
+
+const user = Astro.locals.user;
+const isAdmin = user?.role === "admin";
+
+// Obtener playlists reales de Spotify
+const result = await getUserPlaylists();
+
+const userPlaylists: Playlist[] =
+  result.success && result.data ? result.data : [];
+
+if (result.success) {
+  console.log("✅ Playlists del usuario:", userPlaylists.length);
+} else {
+  console.error("❌ Error al obtener playlists:", result.message);
+}
+
+// Usar playlists reales si existen, sino usar las mock
+const allPlaylists: Playlist[] = [...playlists, ...userPlaylists];
 ---
 
 <Layout title="	Spotify Clone">
-	<div id="playlist-container" class="relative transition-all duration-1000 bg-green-600 ">
-		<div class="relative z-10 px-6 pt-10">
-			<Greeting/>
-			<div class="flex flex-wrap mt-6 gap-4">
-			{
-				playlists.map(playlist => <PlaylistsItemCard playlist={playlist}/>)
-			}
-			</div>
-		</div>
-		<div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/80">
-
-		</div>
-	</div>
+  <div
+    id="playlist-container"
+    class="relative transition-all duration-1000 bg-green-600"
+  >
+    <div class="relative z-10 px-6 pt-10">
+      <Greeting />
+      <div class="flex flex-wrap mt-6 gap-4">
+        {
+          allPlaylists.map((playlist) => (
+            <PlaylistsItemCard playlist={playlist} isAdmin={isAdmin} />
+          ))
+        }
+      </div>
+    </div>
+    <div
+      class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/80"
+    >
+    </div>
+  </div>
 </Layout>
 
 <style></style>

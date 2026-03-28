@@ -1,0 +1,269 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PlaylistsItemCard from "@/components/PlaylistsItemCard.astro";
+import { playlists } from "@/lib/data";
+
+const user = Astro.locals.user;
+
+// Solo admins pueden acceder
+if (!user || user.role !== "admin") {
+  return Astro.redirect("/");
+}
+
+const localPlaylists = playlists.filter((p) => p.local);
+---
+
+<Layout title="Administración - Spotify Clone">
+  <div class="admin-page">
+    <div class="admin-header">
+      <div class="header-content">
+        <div class="badge-admin">Admin Panel</div>
+        <h1>Administración de Playlists</h1>
+        <p class="subtitle">Edita, reordena y gestiona tus playlists locales</p>
+      </div>
+    </div>
+
+    <div class="admin-content">
+      <section class="section">
+        <div class="section-header">
+          <h2>Playlists Locales</h2>
+          <span class="count">{localPlaylists.length} playlists</span>
+        </div>
+
+        <div class="playlists-grid">
+          {
+            localPlaylists.map((playlist) => (
+              <PlaylistsItemCard playlist={playlist} isAdmin={true} />
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <h2>Acciones Rápidas</h2>
+        </div>
+
+        <div class="quick-actions">
+          <div class="action-card">
+            <div class="icon-wrapper">
+              <svg
+                viewBox="0 0 24 24"
+                width="32"
+                height="32"
+                fill="currentColor"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"
+                ></path>
+              </svg>
+            </div>
+            <h3>Crear Playlist</h3>
+            <p>Agregar nueva playlist al sistema</p>
+            <button class="btn-action" disabled>Próximamente</button>
+          </div>
+
+          <div class="action-card">
+            <div class="icon-wrapper">
+              <svg
+                viewBox="0 0 24 24"
+                width="32"
+                height="32"
+                fill="currentColor"
+              >
+                <path
+                  d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"
+                ></path>
+              </svg>
+            </div>
+            <h3>Ver Todas</h3>
+            <p>Lista completa de playlists</p>
+            <a href="/" class="btn-action">Ir al Inicio</a>
+          </div>
+
+          <div class="action-card">
+            <div class="icon-wrapper">
+              <svg
+                viewBox="0 0 24 24"
+                width="32"
+                height="32"
+                fill="currentColor"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                ></path>
+              </svg>
+            </div>
+            <h3>Estadísticas</h3>
+            <p>Total: {localPlaylists.length} playlists locales</p>
+            <p class="stat-detail">
+              {
+                localPlaylists.reduce((acc, p) => {
+                  const id = parseInt(p.albumId.toString());
+                  return (
+                    acc + playlists.filter((pl) => pl.albumId === id).length
+                  );
+                }, 0)
+              } canciones totales
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .admin-page {
+    min-height: 100vh;
+    background: #121212;
+  }
+
+  .admin-header {
+    background: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+    padding: 60px 40px;
+  }
+
+  .header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .badge-admin {
+    display: inline-block;
+    background: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: #fff;
+    margin: 0 0 12px;
+    line-height: 1;
+  }
+
+  .subtitle {
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+  }
+
+  .admin-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px;
+  }
+
+  .section {
+    margin-bottom: 48px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #282828;
+  }
+
+  .section-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+  }
+
+  .count {
+    color: #b3b3b3;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .playlists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 24px;
+  }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .action-card {
+    background: #181818;
+    padding: 32px;
+    border-radius: 12px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .action-card:hover {
+    background: #282828;
+    transform: translateY(-4px);
+  }
+
+  .icon-wrapper {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #1db954, #1ed760);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    color: #000;
+  }
+
+  .action-card h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px;
+  }
+
+  .action-card p {
+    color: #b3b3b3;
+    font-size: 0.875rem;
+    margin: 0 0 16px;
+  }
+
+  .stat-detail {
+    color: #1db954 !important;
+    font-weight: 600;
+  }
+
+  .btn-action {
+    display: inline-block;
+    padding: 10px 24px;
+    background: #1db954;
+    color: #000;
+    border: none;
+    border-radius: 24px;
+    font-weight: 700;
+    font-size: 0.875rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-action:hover:not(:disabled) {
+    background: #1ed760;
+    transform: scale(1.05);
+  }
+
+  .btn-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>

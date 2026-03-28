@@ -1,60 +1,136 @@
 ---
 interface Props {
-	title: string;
+  title: string;
 }
 
-import { Player } from '@/components/Player';
-import AsideMenu from '../components/AsideMenu.astro';
-import { ViewTransitions } from 'astro:transitions';
-
+import { SpotifyPlayer } from "@/components/SpotifyPlayer";
+import AsideMenu from "../components/AsideMenu.astro";
+import { PlaylistProvider } from "@/components/PlaylistProvider";
+import { playlists, songs } from "@/lib/data";
 ---
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<ViewTransitions fallback='none'></ViewTransitions>
-	</head>
-	<body>
-		<div id="app" class="relative h-screen p-2 gap-2">
-			<aside class="[grid-area:aside] flex-col flex overflow-y-auto">
-				<AsideMenu></AsideMenu>
-			</aside>
-				<main class="[grid-area:main] rounded-lg bg-zinc-900 overflow-y-auto">
-					<slot />
-				</main>
-			<footer class="[grid-area:player] h-[80px] "> <Player transition:name='media-player' transition:persist client:load/> </footer>
-		</div>
-<style>
-	#app{
-		display: grid;
-		grid-template-areas:
-			"aside main main"
-			"player player player";
-			grid-template-columns: 350px 1fr;
-			grid-template-rows: 1fr auto;
-		}
-</style>
-<style is:global>
-	@font-face {
-		font-family: 'CircularStd';
-		src: url("/fonts/CircularStd-Bold.woff2") format("woff2");
-		font-weight: 700;
-		font-style: normal;
-		font-display: swap;
-	}
-	@font-face {
-		font-family: 'CircularStd';
-		src: url("/fonts/CircularStd-Black.woff2") format("woff2");
-		font-weight: 700;
-		font-style: normal;
-		font-display: swap;
-	}
-	html {
-		font-family: "CircularStd", sistem-ui, sans-serif;
-		background: #010101;
-		color: white;
-	}
-	
-</style>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>{Astro.props.title}</title>
+  </head>
+  <body>
+    <div id="app">
+      <aside class="[grid-area:aside] flex-col flex overflow-y-auto">
+        <AsideMenu />
+      </aside>
+      <main class="[grid-area:main] rounded-lg bg-zinc-900 overflow-y-auto">
+        <slot />
+      </main>
+      <footer class="[grid-area:player]">
+        <SpotifyPlayer
+          transition:name="media-player"
+          transition:persist
+          client:load
+        />
+      </footer>
+    </div>
+    <PlaylistProvider
+      localPlaylists={playlists}
+      localSongs={songs}
+      client:only="react"
+    />
+    <style>
+      #app {
+        display: grid;
+        grid-template-areas:
+          "aside main main"
+          "player player player";
+        grid-template-columns: 350px 1fr;
+        grid-template-rows: 1fr 80px;
+        height: 100vh;
+        width: 100vw;
+        padding: 8px;
+        gap: 8px;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      aside,
+      main,
+      footer {
+        box-sizing: border-box;
+      }
+
+      aside {
+        min-height: 0;
+      }
+
+      main {
+        min-height: 0;
+      }
+
+      footer {
+        height: 80px;
+        max-height: 80px;
+        min-height: 80px;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+    </style>
+    <style is:global>
+      @font-face {
+        font-family: "CircularStd";
+        src: url("/fonts/CircularStd-Bold.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "CircularStd";
+        src: url("/fonts/CircularStd-Black.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        overflow: hidden;
+        /* Prevenir zoom en dispositivos móviles */
+        touch-action: pan-x pan-y;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+
+      html {
+        font-family: "CircularStd", sistem-ui, sans-serif;
+        background: #010101;
+        color: white;
+      }
+      
+      /* Prevenir zoom automático en inputs y checkboxes */
+      input,
+      textarea,
+      select,
+      button {
+        font-size: 16px !important;
+        touch-action: manipulation;
+      }
+      
+      input[type="checkbox"] {
+        touch-action: manipulation;
+        transform: scale(1);
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+      }
+      
+      /* Prevenir comportamiento de auto-scroll al hacer focus */
+      input:focus,
+      textarea:focus,
+      select:focus {
+        scroll-margin: 0;
+      }
+    </style>
+  </body>
 </html>

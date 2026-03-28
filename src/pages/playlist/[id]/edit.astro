@@ -1,0 +1,800 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import { PlaylistEditor } from "../../../components/PlaylistEditor";
+import { allPlaylists, songs } from "../../../lib/data";
+import { getPlaylistDetails } from "../../../api/spotify/playlist";
+
+const user = Astro.locals.user;
+const accessToken = Astro.locals.accessToken;
+
+console.log("===== EDIT PAGE DEBUG =====");
+console.log("User:", user);
+console.log("User role:", user?.role);
+console.log("Access token:", accessToken ? "Present" : "Missing");
+
+// Solo admins pueden acceder
+if (!user || user.role !== "admin") {
+  console.log("⛔ Access denied - not admin");
+  return Astro.redirect("/");
+}
+
+const { id } = Astro.params;
+console.log("Editing playlist ID:", id);
+
+// Intentar obtener playlist de Spotify primero
+const { songs: spotifySongs, playlist: spotifyPlaylist } =
+  await getPlaylistDetails(id!);
+let playlist;
+let playlistSongs: any[] = [];
+
+if (spotifyPlaylist && spotifyPlaylist.id) {
+  // Es una playlist de Spotify
+  playlist = spotifyPlaylist;
+  playlistSongs = spotifySongs || [];
+  console.log(
+    "✅ Spotify playlist loaded:",
+    playlist.title,
+    "with",
+    playlistSongs.length,
+    "songs",
+  );
+} else {
+  // Buscar en playlists locales
+  playlist = allPlaylists.find((p) => p.id === id);
+  if (playlist) {
+    playlistSongs = songs.filter((s) => s.albumId === playlist.albumId);
+    console.log("✅ Local playlist loaded:", playlist.title);
+  }
+}
+
+if (!playlist) {
+  console.log("⛔ Playlist not found");
+  return Astro.redirect("/");
+}
+---
+
+<Layout title={`Editar ${playlist.title} - Admin`}>
+  <div class="edit-page">
+    <div class="edit-header">
+      <a href={`/playlist/${id}`} class="back-button">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+          ></path>
+        </svg>
+        Volver
+      </a>
+
+      <div class="playlist-header">
+        <img src={playlist.cover} alt={playlist.title} class="playlist-cover" />
+        <div class="playlist-info">
+          <span class="badge-admin">Modo Administración</span>
+          <h1>{playlist.title}</h1>
+          <p class="playlist-artists">{playlist.artists.join(", ")}</p>
+          <p class="playlist-count">{playlistSongs.length} canciones</p>
+        </div>
+      </div>
+    </div>
+
+    <PlaylistEditor
+      playlistId={playlist.id}
+      initialSongs={playlistSongs}
+      initialName={playlist.title}
+      initialDescription={playlist.artists?.join(", ")}
+      initialImage={playlist.cover}
+      accessToken={accessToken!}
+      client:load
+    />
+  </div>
+  
+  <script is:inline>
+    // Prevenir zoom al hacer clic en checkboxes y otros elementos
+    (function() {
+      // Prevenir doble tap zoom
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', function(event) {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+          event.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, { passive: false });
+      
+      // Prevenir zoom con pinch gesture
+      document.addEventListener('gesturestart', function(e) {
+        e.preventDefault();
+      }, { passive: false });
+      
+      document.addEventListener('gesturechange', function(e) {
+        e.preventDefault();
+      }, { passive: false });
+      
+      document.addEventListener('gestureend', function(e) {
+        e.preventDefault();
+      }, { passive: false });
+    })();
+  </script>
+</Layout>
+
+<style>
+  .edit-page {
+    padding: 40px;
+    padding-bottom: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    /* Prevenir ajustes automáticos de scroll */
+    overflow-anchor: none;
+    position: relative;
+  }
+
+  .edit-header {
+    margin-bottom: 40px;
+  }
+
+  .back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #b3b3b3;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+    transition: color 0.2s;
+  }
+
+  .back-button:hover {
+    color: #fff;
+  }
+
+  .playlist-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+    background: linear-gradient(
+      135deg,
+      rgba(29, 185, 84, 0.2),
+      rgba(0, 0, 0, 0.5)
+    );
+    border-radius: 12px;
+  }
+
+  .playlist-cover {
+    width: 160px;
+    height: 160px;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .playlist-info {
+    flex: 1;
+  }
+
+  .badge-admin {
+    display: inline-block;
+    background: #1db954;
+    color: #000;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .playlist-info h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: #fff;
+  }
+
+  .playlist-artists {
+    color: #b3b3b3;
+    font-size: 1rem;
+    margin: 0 0 8px;
+  }
+
+  .playlist-count {
+    color: #fff;
+    font-size: 0.875rem;
+    opacity: 0.8;
+    margin: 0;
+  }
+
+  /* PlaylistEditor Styles */
+  :global(.playlist-editor) {
+    background: #181818;
+    border-radius: 12px;
+    padding: 24px;
+    overflow-anchor: none;
+    position: relative;
+  }
+
+  :global(.error-banner) {
+    background: #ff4444;
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  :global(.error-banner button) {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 0 8px;
+  }
+
+  :global(.editor-header) {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #282828;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  :global(.editor-actions) {
+    display: flex;
+    gap: 12px;
+  }
+
+  /* Buscador local */
+  :global(.search-local-container) {
+    position: relative;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    background: #282828;
+    border-radius: 8px;
+    padding: 0 16px;
+  }
+
+  :global(.search-icon) {
+    color: #b3b3b3;
+    flex-shrink: 0;
+  }
+
+  :global(.search-local-input) {
+    flex: 1;
+    padding: 14px 16px;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+  }
+
+  :global(.search-local-input::placeholder) {
+    color: #b3b3b3;
+  }
+
+  :global(.btn-clear-search) {
+    background: transparent;
+    border: none;
+    color: #b3b3b3;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 1.2rem;
+  }
+
+  :global(.btn-clear-search:hover) {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  :global(.btn-edit-details),
+  :global(.btn-add-songs) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #282828;
+    border: none;
+    border-radius: 20px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  :global(.btn-edit-details:hover),
+  :global(.btn-add-songs:hover) {
+    background: #333;
+    transform: translateY(-2px);
+  }
+
+  :global(.btn-add-songs) {
+    background: #1db954;
+    color: #000;
+  }
+
+  :global(.btn-add-songs:hover) {
+    background: #1ed760;
+  }
+
+  :global(.btn-delete-playlist) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #282828;
+    border: 1px solid #ff4444;
+    border-radius: 20px;
+    color: #ff4444;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  :global(.btn-delete-playlist:hover) {
+    background: #ff4444;
+    color: #fff;
+    transform: translateY(-2px);
+  }
+
+  :global(.editor-header h3) {
+    font-size: 1.5rem;
+    color: #fff;
+    margin: 0 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  :global(.loading-spinner) {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+    font-size: 1.25rem;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  :global(.hint) {
+    color: #b3b3b3;
+    font-size: 0.875rem;
+    margin: 0;
+  }
+
+  :global(.songs-list) {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-anchor: none;
+    position: relative;
+  }
+
+  :global(.song-item) {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    background: #282828;
+    border-radius: 8px;
+    cursor: move;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    overflow-anchor: none;
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  :global(.song-item:hover) {
+    background: #3e3e3e;
+  }
+
+  :global(.song-item.dragging) {
+    opacity: 0.5;
+    border-color: #1db954;
+  }
+
+  :global(.song-item.selected.dragging) {
+    opacity: 0.7;
+    border-color: #1db954;
+    box-shadow: 0 0 20px rgba(29, 185, 84, 0.3);
+  }
+
+  :global(.drag-handle) {
+    color: #b3b3b3;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
+  :global(.drag-handle:active) {
+    cursor: grabbing;
+  }
+
+  :global(.drag-counter) {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #1db954;
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border: 2px solid #282828;
+  }
+
+  :global(.song-info) {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  :global(.song-image) {
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+  }
+
+  :global(.song-details) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  :global(.song-title) {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0 0 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :global(.song-artists) {
+    color: #b3b3b3;
+    font-size: 0.875rem;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :global(.song-meta) {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  :global(.song-duration) {
+    color: #b3b3b3;
+    font-size: 0.875rem;
+    min-width: 50px;
+    text-align: right;
+  }
+
+  :global(.btn-remove) {
+    background: transparent;
+    border: none;
+    color: #b3b3b3;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  :global(.btn-remove:hover) {
+    color: #ff4444;
+    background: rgba(255, 68, 68, 0.1);
+  }
+
+  /* Selection Bar */
+  :global(.selection-bar) {
+    background: #1db954;
+    color: #000;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  :global(.selection-info) {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-weight: 600;
+  }
+
+  :global(.btn-clear) {
+    background: transparent;
+    border: 1px solid #000;
+    color: #000;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  :global(.btn-clear:hover) {
+    background: #000;
+    color: #1db954;
+  }
+
+  :global(.selection-actions) {
+    display: flex;
+    gap: 12px;
+  }
+
+  :global(.btn-delete),
+  :global(.btn-create) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  :global(.btn-delete) {
+    background: #000;
+    color: #ff4444;
+  }
+
+  :global(.btn-delete:hover) {
+    background: #ff4444;
+    color: #000;
+  }
+
+  :global(.btn-create) {
+    background: #000;
+    color: #fff;
+  }
+
+  :global(.btn-create:hover) {
+    background: #fff;
+    color: #000;
+  }
+
+  /* Checkbox Styles */
+  :global(.checkbox-container) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  :global(.checkbox-container input[type="checkbox"]) {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+    font-size: 16px !important;
+  }
+
+  :global(.checkmark) {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #b3b3b3;
+    border-radius: 4px;
+    background: transparent;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :global(.checkbox-container:hover .checkmark) {
+    border-color: #1db954;
+  }
+
+  :global(.checkbox-container input[type="checkbox"]:checked ~ .checkmark) {
+    background: #1db954;
+    border-color: #1db954;
+  }
+
+  :global(
+    .checkbox-container input[type="checkbox"]:checked ~ .checkmark::after
+  ) {
+    content: "✓";
+    color: #000;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  :global(.label-text) {
+    color: #b3b3b3;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  :global(.songs-header) {
+    padding: 12px 16px;
+    background: #282828;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  :global(.drag-hint-header) {
+    margin: 8px 0 0;
+    padding: 8px 12px;
+    background: rgba(29, 185, 84, 0.1);
+    border-left: 3px solid #1db954;
+    border-radius: 4px;
+    color: #1db954;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  :global(.song-item.selected) {
+    background: rgba(29, 185, 84, 0.15);
+    border-color: #1db954;
+  }
+
+  /* Buscador Local */
+  :global(.search-local-container) {
+    position: relative;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #282828;
+    padding: 12px 16px;
+    border-radius: 8px;
+  }
+
+  :global(.search-icon) {
+    color: #b3b3b3;
+    flex-shrink: 0;
+  }
+
+  :global(.search-local-input) {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    padding: 8px 0;
+  }
+
+  :global(.search-local-input::placeholder) {
+    color: #6a6a6a;
+  }
+
+  :global(.btn-clear-search) {
+    background: transparent;
+    border: none;
+    color: #b3b3b3;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  :global(.btn-clear-search:hover) {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  :global(.btn-select-filtered) {
+    padding: 6px 12px;
+    background: #1db954;
+    color: #000;
+    border: none;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  :global(.btn-select-filtered:hover) {
+    background: #1ed760;
+    transform: scale(1.05);
+  }
+
+  /* Move Multiple Songs */
+  :global(.btn-move) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid #000;
+    background: #000;
+    color: #ffaa00;
+  }
+
+  :global(.btn-move:hover) {
+    background: #ffaa00;
+    color: #000;
+  }
+
+  :global(.btn-move.active) {
+    background: #ffaa00;
+    color: #000;
+    border-color: #ffaa00;
+  }
+
+  :global(.move-hint) {
+    background: rgba(255, 170, 0, 0.2);
+    color: #ffaa00;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border: 1px solid #ffaa00;
+  }
+
+  :global(.song-item.move-target) {
+    cursor: pointer !important;
+  }
+
+  :global(.song-item.move-target:hover) {
+    background: rgba(255, 170, 0, 0.2) !important;
+    border-color: #ffaa00 !important;
+  }
+
+  /* No results message */
+  :global(.no-results) {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #b3b3b3;
+    background: #282828;
+    border-radius: 8px;
+  }
+
+  :global(.no-results p) {
+    margin: 0;
+    font-size: 1rem;
+  }
+</style>
