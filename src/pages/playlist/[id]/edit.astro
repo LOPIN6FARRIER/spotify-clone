@@ -1,7 +1,7 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
 import { PlaylistEditor } from "../../../components/PlaylistEditor";
-import { allPlaylists, songs } from "../../../lib/data";
+import { allPlaylists, songs, type Playlist } from "../../../lib/data";
 import { getPlaylistDetails } from "../../../api/spotify/playlist";
 
 const user = Astro.locals.user;
@@ -24,7 +24,7 @@ console.log("Editing playlist ID:", id);
 // Intentar obtener playlist de Spotify primero
 const { songs: spotifySongs, playlist: spotifyPlaylist } =
   await getPlaylistDetails(id!);
-let playlist;
+let playlist: Playlist | undefined;
 let playlistSongs: any[] = [];
 
 if (spotifyPlaylist && spotifyPlaylist.id) {
@@ -42,7 +42,7 @@ if (spotifyPlaylist && spotifyPlaylist.id) {
   // Buscar en playlists locales
   playlist = allPlaylists.find((p) => p.id === id);
   if (playlist) {
-    playlistSongs = songs.filter((s) => s.albumId === playlist.albumId);
+    playlistSongs = songs.filter((s) => s.albumId === playlist!.albumId);
     console.log("✅ Local playlist loaded:", playlist.title);
   }
 }
